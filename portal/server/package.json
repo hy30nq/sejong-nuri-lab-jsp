@@ -1,0 +1,16 @@
+{
+  "name": "@sejong-nuri/target-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "TRAINING_MODE=1 node --watch src/server.mjs",
+    "start": "node src/server.mjs",
+    "seed": "TRAINING_MODE=1 node src/seed.mjs",
+    "test": "node -e \"console.log('통합 흐름 검사는 루트에서 npm test')\""
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "multer": "^2.0.2"
+  }
+}

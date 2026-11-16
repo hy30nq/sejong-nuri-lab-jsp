@@ -1,0 +1,42 @@
+x-server-logging: &server-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "2"
+
+services:
+  command-sandbox:
+    restart: unless-stopped
+    init: true
+    stop_signal: SIGINT
+    stop_grace_period: 5s
+    mem_limit: 64m
+    cpus: "0.25"
+    logging: *server-logging
+
+  portal:
+    restart: unless-stopped
+    init: true
+    stop_signal: SIGINT
+    stop_grace_period: 5s
+    mem_limit: 192m
+    cpus: "0.50"
+    logging: *server-logging
+
+  web:
+    restart: unless-stopped
+    mem_limit: 32m
+    cpus: "0.10"
+    logging: *server-logging
+    volumes:
+      - ./deploy/nginx.server.conf:/etc/nginx/conf.d/default.conf:ro
+      - ${LAB_HTPASSWD_FILE:?LAB_HTPASSWD_FILE is required}:/etc/nginx/auth.htpasswd:ro
+
+networks:
+  private:
+    ipam:
+      config:
+        - subnet: ${LAB_PRIVATE_SUBNET:?LAB_PRIVATE_SUBNET is required}
+  ingress:
+    name: ${LAB_INGRESS_NETWORK:-sejong-lab-ingress}
+    external: true

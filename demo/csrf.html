@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>지역생활 정보 안내</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f5f8fa; color: #143450; font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    header { background: #123d60; color: #fff; padding: 18px max(24px, calc((100% - 960px)/2)); font-weight: 800; }
+    main { width: min(960px, calc(100% - 40px)); margin: 58px auto; padding: 42px; border: 1px solid #d3e0e8; background: #fff; }
+    small { display: inline-block; color: #087f79; font-weight: 800; letter-spacing: .05em; }
+    h1 { margin: 12px 0 10px; font-size: 34px; letter-spacing: -.04em; }
+    p { color: #526b7e; }
+    a { display: inline-block; margin-top: 14px; padding: 12px 20px; border-radius: 3px; background: #123d60; color: #fff; font-weight: 750; text-decoration: none; }
+    a:not([href]) { background: #8294a5; cursor: not-allowed; }
+    aside { margin-top: 36px; padding: 16px 19px; border-left: 3px solid #0d9b94; background: #eff7f6; color: #315b68; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>지역생활 정보 안내</header>
+  <main>
+    <small>안내 서비스</small>
+    <h1>알림 설정 확인</h1>
+    <p>세종누리에서 접수·처리 알림 설정을 확인할 수 있습니다.</p>
+    <a id="setting-link" href="http://127.0.0.1:11191/api/citizens/preferences/email?enabled=false" rel="noreferrer">이메일 알림 설정 보기</a>
+    <p>연결 주소: <code id="target-url"></code></p>
+    <aside>교육용 가상 안내 페이지입니다. 링크는 이 PC의 실습 포털만 가리킵니다.</aside>
+  </main>
+  <script>
+    const params = new URLSearchParams(location.search)
+    const portal = params.get('portal') || 'http://127.0.0.1:11191'
+    let target = 'http://127.0.0.1:11191/api/citizens/preferences/email?enabled=false'
+    try { target = new URL('/api/citizens/preferences/email?enabled=false', portal).href } catch {}
+    document.querySelector('#setting-link').href = target
+    document.querySelector('#target-url').textContent = target
+  </script>
+</body>
+</html>

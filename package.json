@@ -1,0 +1,13 @@
+{
+  "name": "sejong-nuri-lab",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["portal", "portal/server"],
+  "scripts": {
+    "build": "npm --workspace @sejong-nuri/portal run build",
+    "typecheck": "npm --workspace @sejong-nuri/portal run typecheck",
+    "test": "node tests/flow.mjs",
+    "start": "docker compose up -d --build",
+    "stop": "docker compose down"
+  }
+}
