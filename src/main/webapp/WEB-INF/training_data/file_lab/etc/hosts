@@ -1,0 +1,4 @@
+127.0.0.1 localhost
+10.24.7.23 portal.internal
+10.24.7.24 citizen-db.internal
+10.24.7.25 document-store.internal

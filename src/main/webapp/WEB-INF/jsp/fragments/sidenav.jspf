@@ -1,0 +1,13 @@
+<%@ page pageEncoding="UTF-8" %>
+<nav class="side-nav" aria-label="시민 서비스 메뉴">
+  <strong>시민 서비스</strong>
+  <a class="<%= "apply".equals(section) ? "active" : "" %>" href="/apply"><svg><use href="/assets/icons.svg#file"/></svg><span>새 민원 신청</span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a>
+  <a class="<%= "complaints".equals(section) ? "active" : "" %>" href="/complaints"><svg><use href="/assets/icons.svg#clipboard"/></svg><span>나의 민원</span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a>
+  <a class="<%= "board".equals(section) ? "active" : "" %>" href="/board"><svg><use href="/assets/icons.svg#message"/></svg><span>시민 의견</span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a>
+  <a class="<%= "attachments".equals(section) ? "active" : "" %>" href="/attachments"><svg><use href="/assets/icons.svg#paperclip"/></svg><span>증빙자료 첨부</span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a>
+  <a class="<%= "documents".equals(section) ? "active" : "" %>" href="/documents"><svg><use href="/assets/icons.svg#download"/></svg><span>공개 자료실</span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a>
+  <a class="<%= "certificates".equals(section) ? "active" : "" %>" href="/certificates"><svg><use href="/assets/icons.svg#file"/></svg><span>결과문서 발급</span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a>
+  <a class="<%= "settings".equals(section) ? "active" : "" %>" href="/settings"><svg><use href="/assets/icons.svg#bell"/></svg><span>알림 설정</span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a>
+  <a class="<%= "identity".equals(section) ? "active" : "" %>" href="/identity"><svg><use href="/assets/icons.svg#shield"/></svg><span>본인 확인</span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a>
+  <a class="<%= "status".equals(section) ? "active" : "" %>" href="/status"><svg><use href="/assets/icons.svg#wifi"/></svg><span>연결 상태</span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a>
+</nav>

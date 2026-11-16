@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'war'
+}
+
+group = 'com.sejongnuri'
+version = '2.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    providedCompile 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+    implementation 'com.h2database:h2:2.3.232'
+    implementation 'com.google.code.gson:gson:2.13.2'
+
+    testImplementation platform('org.junit:junit-bom:5.13.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('war') {
+    archiveFileName = 'ROOT.war'
+}
+
+tasks.register('sandboxJar', Jar) {
+    archiveFileName = 'command-sandbox.jar'
+    destinationDirectory = layout.buildDirectory.dir('libs')
+    from sourceSets.main.output
+    include 'com/sejongnuri/lab/CommandSandboxServer*.class'
+    manifest {
+        attributes 'Main-Class': 'com.sejongnuri.lab.CommandSandboxServer'
+    }
+}
+
+tasks.named('assemble') {
+    dependsOn tasks.named('sandboxJar')
+}

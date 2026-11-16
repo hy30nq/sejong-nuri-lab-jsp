@@ -1,8 +1,6 @@
-node_modules
-portal/dist
-portal/node_modules
-portal/server/data
-portal/server/uploads
 screenshots
 tests
 deploy/state
+.git
+.gradle
+build

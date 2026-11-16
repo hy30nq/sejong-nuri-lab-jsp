@@ -1,1 +1,5 @@
 deploy/state/
+.gradle/
+build/
+screenshots/
+*.log

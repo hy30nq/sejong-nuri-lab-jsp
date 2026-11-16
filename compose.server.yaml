@@ -19,8 +19,8 @@ services:
     init: true
     stop_signal: SIGINT
     stop_grace_period: 5s
-    mem_limit: 192m
-    cpus: "0.50"
+    mem_limit: 512m
+    cpus: "0.75"
     logging: *server-logging
 
   web:

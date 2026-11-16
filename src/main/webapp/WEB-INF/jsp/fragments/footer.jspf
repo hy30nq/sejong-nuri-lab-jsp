@@ -1,0 +1,6 @@
+<%@ page pageEncoding="UTF-8" %>
+<footer class="portal-footer">
+  <div class="shell footer-support"><strong>☎ 상담·이용안내</strong><span>민원·서비스 안내 <b>044-123-4567</b></span><span>운영시간 평일 09:00 ~ 18:00 (점심시간 12:00 ~ 13:00)</span></div>
+  <div class="footer-main"><div class="shell footer-main-inner"><a class="brand brand-compact" href="/"><img src="/assets/images/brand-mark.png" alt=""><span><strong>세종누리</strong></span></a><div><nav aria-label="하단 메뉴"><a href="/services">서비스 안내</a><a href="/notices">공지사항</a><a href="/status">이용 상태</a></nav><p>세종누리 시민지원 통합포털 · 교육용 가상기관 · 문의번호 044-123-4567 (가상번호)</p></div></div></div>
+  <div class="training-disclaimer"><div class="shell"><svg><use href="/assets/icons.svg#info"/></svg><strong>보안교육을 위한 가상서비스</strong><span>이 사이트는 웹 보안 학습과 실습을 위해 제작된 가상의 공공서비스입니다. 실제 민원 처리, 개인정보 수집, 행정효력은 없습니다.</span></div></div>
+</footer>

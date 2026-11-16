@@ -1,0 +1,40 @@
+<%@ page pageEncoding="UTF-8" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="static com.sejongnuri.lab.JspUtil.h" %>
+<%
+  Map<String,Object> headerUser = (Map<String,Object>) request.getAttribute("user");
+  String activePath = String.valueOf(request.getAttribute("activePath"));
+%>
+<div class="utility-bar">
+  <div class="shell utility-inner">
+    <span>세종누리 시민지원 통합포털</span>
+    <nav aria-label="사이트 도구">
+      <a href="/notices">공지사항</a><a href="/services">전체서비스</a>
+      <a href="<%= headerUser == null ? "/login" : "/account" %>"><%= headerUser == null ? "로그인" : "마이페이지" %></a>
+      <% if (headerUser != null) { %><button class="link-button" type="button" data-logout>로그아웃</button><% } %>
+    </nav>
+  </div>
+</div>
+<header class="main-header">
+  <div class="shell header-inner">
+    <a class="brand" href="/" aria-label="세종누리 시민지원 통합포털 홈">
+      <img src="/assets/images/brand-mark.png" alt=""><span><strong>세종누리</strong><small>시민지원 통합포털</small></span>
+    </a>
+    <nav class="main-nav" aria-label="주 메뉴">
+      <a class="<%= "/services".equals(activePath) || "/apply".equals(activePath) ? "active" : "" %>" href="/services">민원서비스</a>
+      <a class="<%= "/complaints".equals(activePath) ? "active" : "" %>" href="/complaints">나의 민원</a>
+      <a class="<%= "/documents".equals(activePath) || "/attachments".equals(activePath) || "/certificates".equals(activePath) ? "active" : "" %>" href="/documents">문서·자료실</a>
+      <a class="<%= "/board".equals(activePath) ? "active" : "" %>" href="/board">시민 의견</a>
+      <a class="<%= "/status".equals(activePath) ? "active" : "" %>" href="/status">이용안내</a>
+    </nav>
+    <div class="header-actions">
+      <% if (headerUser != null && "staff".equals(headerUser.get("role"))) { %><a class="admin-link" href="/admin">포털 관리</a><% } %>
+      <a class="icon-button" href="<%= headerUser == null ? "/login" : "/settings" %>" aria-label="알림 설정"><svg><use href="/assets/icons.svg#bell"/></svg></a>
+      <a class="account-button" href="<%= headerUser == null ? "/login" : "/account" %>"><svg><use href="/assets/icons.svg#user"/></svg><span><%= headerUser == null ? "로그인" : h(headerUser.get("displayName")) + "님" %></span></a>
+      <button class="mobile-menu-button" type="button" aria-label="메뉴 열기" aria-expanded="false"><svg><use href="/assets/icons.svg#menu"/></svg></button>
+    </div>
+  </div>
+  <nav class="mobile-nav" aria-label="모바일 주 메뉴" hidden>
+    <a href="/services">민원서비스</a><a href="/complaints">나의 민원</a><a href="/documents">문서·자료실</a><a href="/board">시민 의견</a><a href="/status">이용안내</a>
+  </nav>
+</header>

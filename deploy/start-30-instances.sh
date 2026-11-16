@@ -48,7 +48,7 @@ if ! docker network inspect "$LAB_INGRESS_NETWORK" >/dev/null 2>&1; then
 fi
 
 echo "공통 애플리케이션 이미지를 한 번만 빌드합니다."
-docker compose -f "$ROOT_DIR/compose.yaml" build command-sandbox
+docker compose -f "$ROOT_DIR/compose.yaml" build command-sandbox portal
 
 MANIFEST_TMP="$STATE_DIR/credentials.tsv.tmp"
 MANIFEST="$STATE_DIR/credentials.tsv"
