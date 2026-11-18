@@ -30,11 +30,11 @@ docker network ls
 
 ## 30개 시작
 
-학교 서버 내부 IP가 `10.20.30.40`인 예시입니다.
+기본값은 `0.0.0.0` 바인딩이며 별도 IP 입력 없이 실행합니다.
 
 ```bash
 chmod +x deploy/start-30-instances.sh deploy/stop-30-instances.sh deploy/down-30-instances.sh
-LAB_BIND_IP=10.20.30.40 ./deploy/start-30-instances.sh
+./deploy/start-30-instances.sh
 ```
 
 기본 실행 값:
@@ -42,19 +42,16 @@ LAB_BIND_IP=10.20.30.40 ./deploy/start-30-instances.sh
 ```text
 INSTANCE_COUNT=30
 BASE_PORT=11191
+LAB_BIND_IP=0.0.0.0
 LAB_PRIVATE_PREFIX=10.240
 LAB_INGRESS_NETWORK=sejong-lab-ingress
 LAB_INGRESS_SUBNET=10.239.255.0/24
 ```
 
-값을 바꾸려면 실행 명령 앞에 지정합니다.
+로컬 접속 주소는 자동으로 `127.0.0.1`을 사용합니다. 서버에서 교육생에게 배포할 주소만 별도로 표시하려면 `LAB_ACCESS_HOST`를 지정할 수 있습니다. 바인딩은 계속 `0.0.0.0`입니다.
 
 ```bash
-LAB_BIND_IP=10.20.30.40 \
-INSTANCE_COUNT=30 \
-BASE_PORT=11191 \
-LAB_PRIVATE_PREFIX=10.240 \
-./deploy/start-30-instances.sh
+LAB_ACCESS_HOST=10.20.30.40 ./deploy/start-30-instances.sh
 ```
 
 교육생별 주소와 외부 인증 계정은 다음 파일에 생성됩니다.
@@ -101,7 +98,7 @@ REMOVE_VOLUMES=1 ./deploy/down-30-instances.sh
 
 ## 방화벽
 
-`11191~11220`은 학교 교육망 또는 VPN 대역에서만 접근을 허용하세요. UFW를 사용한다면 다음 형식으로 적용할 수 있습니다.
+기본 바인딩이 `0.0.0.0`이므로 `11191~11220`은 학교 교육망 또는 VPN 대역에서만 접근을 허용하세요. UFW를 사용한다면 다음 형식으로 적용할 수 있습니다.
 
 ```bash
 sudo ufw allow from <교육망-CIDR> to any port 11191:11220 proto tcp

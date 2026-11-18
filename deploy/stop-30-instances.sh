@@ -29,4 +29,4 @@ done
 
 echo
 echo "전체 인스턴스를 중지했습니다. DB와 업로드 볼륨은 보존되어 다시 시작할 수 있습니다."
-echo "재시작: LAB_BIND_IP=<학교 서버 IP> ./deploy/start-30-instances.sh"
+echo "재시작: ./deploy/start-30-instances.sh"
