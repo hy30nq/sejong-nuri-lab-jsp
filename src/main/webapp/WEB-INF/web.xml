@@ -4,9 +4,4 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_1.xsd"
          version="6.1">
   <display-name>세종누리 시민지원 통합포털</display-name>
-  <session-config>
-    <cookie-config>
-      <http-only>true</http-only>
-    </cookie-config>
-  </session-config>
 </web-app>

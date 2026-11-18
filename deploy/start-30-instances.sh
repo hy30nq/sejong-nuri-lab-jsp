@@ -29,7 +29,7 @@ for boolean_name in RESET_EXISTING_INSTANCES REPLACE_PORT_OWNERS; do
   fi
 done
 
-for command_name in docker openssl curl find grep; do
+for command_name in docker curl find grep; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "오류: $command_name 명령이 필요합니다." >&2
     exit 2
@@ -132,6 +132,10 @@ if [[ "$RESET_EXISTING_INSTANCES" == "1" ]]; then
   done < <(find "$STATE_DIR" -maxdepth 1 -type f -name '*.env' -print0)
 fi
 
+find "$STATE_DIR" -maxdepth 1 -type f \
+  \( -name '*.access' -o -name '*.htpasswd' -o -name 'credentials.tsv' -o -name 'credentials.tsv.tmp' \) \
+  -delete
+
 if ! docker network inspect "$LAB_INGRESS_NETWORK" >/dev/null 2>&1; then
   echo "공유 ingress 네트워크 생성: $LAB_INGRESS_NETWORK ($LAB_INGRESS_SUBNET)"
   docker network create \
@@ -143,9 +147,9 @@ fi
 echo "공통 애플리케이션 이미지를 한 번만 빌드합니다."
 docker compose -f "$ROOT_DIR/compose.yaml" build command-sandbox portal
 
-MANIFEST_TMP="$STATE_DIR/credentials.tsv.tmp"
-MANIFEST="$STATE_DIR/credentials.tsv"
-printf 'instance\tproject\turl\taccess_user\taccess_password\n' > "$MANIFEST_TMP"
+MANIFEST_TMP="$STATE_DIR/instances.tsv.tmp"
+MANIFEST="$STATE_DIR/instances.tsv"
+printf 'instance\tproject\turl\tport\n' > "$MANIFEST_TMP"
 
 health_host="127.0.0.1"
 access_host="${LAB_ACCESS_HOST:-127.0.0.1}"
@@ -156,32 +160,12 @@ for ((number = 1; number <= INSTANCE_COUNT; number++)); do
   port=$((BASE_PORT + number - 1))
   private_subnet="$LAB_PRIVATE_PREFIX.$number.0/29"
   env_file="$STATE_DIR/$instance.env"
-  access_file="$STATE_DIR/$instance.access"
-  htpasswd_file="$STATE_DIR/$instance.htpasswd"
-
-  access_user="trainee$instance"
-  if [[ -f "$access_file" ]]; then
-    # shellcheck disable=SC1090
-    source "$access_file"
-    access_user="$LAB_ACCESS_USER"
-    access_password="$LAB_ACCESS_PASSWORD"
-  else
-    access_password="$(openssl rand -hex 8)"
-    {
-      printf 'LAB_ACCESS_USER=%q\n' "$access_user"
-      printf 'LAB_ACCESS_PASSWORD=%q\n' "$access_password"
-    } > "$access_file"
-  fi
-
-  printf '%s:%s\n' "$access_user" "$(openssl passwd -apr1 "$access_password")" > "$htpasswd_file"
-  chmod 644 "$htpasswd_file"
 
   cat > "$env_file" <<EOF
 COMPOSE_PROJECT_NAME=$project
 LAB_PORT=$port
 LAB_PRIVATE_SUBNET=$private_subnet
 LAB_INGRESS_NETWORK=$LAB_INGRESS_NETWORK
-LAB_HTPASSWD_FILE=$htpasswd_file
 EOF
 
   echo "[$instance/$INSTANCE_COUNT] $project 시작: 호스트 포트 $port"
@@ -195,7 +179,6 @@ EOF
   healthy=0
   for _attempt in {1..30}; do
     if curl --silent --show-error --fail \
-      --user "$access_user:$access_password" \
       "http://$health_host:$port/api/health" >/dev/null 2>&1; then
       healthy=1
       break
@@ -209,17 +192,16 @@ EOF
     exit 1
   fi
 
-  printf '%s\t%s\thttp://%s:%s/\t%s\t%s\n' \
-    "$instance" "$project" "$access_host" "$port" "$access_user" "$access_password" \
+  printf '%s\t%s\thttp://%s:%s/\t%s\n' \
+    "$instance" "$project" "$access_host" "$port" "$port" \
     >> "$MANIFEST_TMP"
 done
 
 mv "$MANIFEST_TMP" "$MANIFEST"
-chmod 600 "$MANIFEST"
+chmod 644 "$MANIFEST"
 
 echo
 echo "${INSTANCE_COUNT}개 인스턴스 시작 완료"
 echo "포트 범위: $BASE_PORT-$((BASE_PORT + INSTANCE_COUNT - 1))"
 echo "로컬 접속 범위: http://$access_host:$BASE_PORT/ ~ http://$access_host:$((BASE_PORT + INSTANCE_COUNT - 1))/"
-echo "교육생별 접속 정보: $MANIFEST"
-echo "주의: 접속 정보 파일에는 평문 비밀번호가 있으므로 강사만 읽을 수 있게 유지하세요."
+echo "교육생별 URL과 포트: $MANIFEST"

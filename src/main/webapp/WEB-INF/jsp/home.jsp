@@ -28,4 +28,4 @@
     </div></section>
   </div>
   <section class="shell help-strip"><div><h2>서비스 이용안내</h2><p>이용에 필요한 내용을 확인하세요.</p></div><a href="/services"><svg><use href="/assets/icons.svg#file"/></svg><span><strong>민원서비스 이용방법</strong><small>신청부터 처리결과 확인까지</small></span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a><a href="/identity"><svg><use href="/assets/icons.svg#shield"/></svg><span><strong>본인 확인 안내</strong><small>계정 확인 절차 알아보기</small></span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a><a href="/status"><svg><use href="/assets/icons.svg#wifi"/></svg><span><strong>서비스 연결 상태</strong><small>포털 이용 상태 확인</small></span><svg><use href="/assets/icons.svg#arrow-right"/></svg></a></section>
-</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js?v=20261118-2" defer></script></body></html>
+</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js?v=20261118-3" defer></script></body></html>

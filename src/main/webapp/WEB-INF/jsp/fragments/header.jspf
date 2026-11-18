@@ -10,8 +10,7 @@
     <span>세종누리 시민지원 통합포털</span>
     <nav aria-label="사이트 도구">
       <a href="/notices">공지사항</a><a href="/services">전체서비스</a>
-      <a href="<%= headerUser == null ? "/login" : "/account" %>"><%= headerUser == null ? "로그인" : "마이페이지" %></a>
-      <% if (headerUser != null) { %><button class="link-button" type="button" data-logout>로그아웃</button><% } %>
+      <a href="/account">마이페이지</a><a href="/admin">포털 관리</a>
     </nav>
   </div>
 </div>
@@ -28,9 +27,9 @@
       <a class="<%= "/status".equals(activePath) ? "active" : "" %>" href="/status">이용안내</a>
     </nav>
     <div class="header-actions">
-      <% if (headerUser != null && "staff".equals(headerUser.get("role"))) { %><a class="admin-link" href="/admin">포털 관리</a><% } %>
-      <a class="icon-button" href="<%= headerUser == null ? "/login" : "/settings" %>" aria-label="알림 설정"><svg><use href="/assets/icons.svg#bell"/></svg></a>
-      <a class="account-button" href="<%= headerUser == null ? "/login" : "/account" %>"><svg><use href="/assets/icons.svg#user"/></svg><span><%= headerUser == null ? "로그인" : h(headerUser.get("displayName")) + "님" %></span></a>
+      <a class="admin-link" href="/admin">포털 관리</a>
+      <a class="icon-button" href="/settings" aria-label="알림 설정"><svg><use href="/assets/icons.svg#bell"/></svg></a>
+      <a class="account-button" href="/account"><svg><use href="/assets/icons.svg#user"/></svg><span><%= h(headerUser.get("displayName")) %>님</span></a>
       <button class="mobile-menu-button" type="button" aria-label="메뉴 열기" aria-expanded="false"><svg><use href="/assets/icons.svg#menu"/></svg></button>
     </div>
   </div>

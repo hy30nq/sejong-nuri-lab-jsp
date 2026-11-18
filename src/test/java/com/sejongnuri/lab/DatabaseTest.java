@@ -27,4 +27,16 @@ class DatabaseTest {
         assertNotNull(trueRow);
         assertNull(falseRow);
     }
+
+    @Test
+    void removesPasswordsAndSessionsFromTheTrainingPortal() throws Exception {
+        Map<String, Object> passwordColumns = Database.one("""
+            SELECT COUNT(*) AS count
+              FROM information_schema.columns
+             WHERE table_name = 'portal_accounts' AND column_name = 'password'
+            """);
+        assertEquals(0L, ((Number) passwordColumns.get("count")).longValue());
+        assertThrows(Exception.class, () -> Database.query("SELECT * FROM portal_sessions"));
+        assertEquals("hangaram", TrainingContext.defaultUser().get("username"));
+    }
 }
