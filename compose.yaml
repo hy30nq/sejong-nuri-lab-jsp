@@ -55,7 +55,6 @@ services:
     ports:
       - target: 11191
         published: "${LAB_PORT:-11191}"
-        host_ip: "${LAB_BIND_IP:-0.0.0.0}"
         protocol: tcp
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro

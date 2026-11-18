@@ -5,7 +5,6 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_DIR="${STATE_DIR:-$ROOT_DIR/deploy/state}"
 INSTANCE_COUNT="${INSTANCE_COUNT:-30}"
 BASE_PORT="${BASE_PORT:-11191}"
-LAB_BIND_IP="${LAB_BIND_IP:-0.0.0.0}"
 LAB_ACCESS_HOST="${LAB_ACCESS_HOST:-}"
 LAB_PRIVATE_PREFIX="${LAB_PRIVATE_PREFIX:-10.240}"
 LAB_INGRESS_NETWORK="${LAB_INGRESS_NETWORK:-sejong-lab-ingress}"
@@ -59,11 +58,6 @@ validate_resolved_port() {
   local resolved_config
 
   resolved_config="$(compose_instance "$env_file" "$project" config)"
-  if ! grep -Fq "host_ip: $LAB_BIND_IP" <<< "$resolved_config"; then
-    echo "오류: $project 설정에 호스트 바인딩 $LAB_BIND_IP가 반영되지 않았습니다." >&2
-    echo "확인: docker compose --env-file '$env_file' -f '$ROOT_DIR/compose.yaml' -f '$ROOT_DIR/compose.server.yaml' -p '$project' config" >&2
-    return 1
-  fi
   if ! grep -Fq "published: \"$port\"" <<< "$resolved_config"; then
     echo "오류: $project 설정에 호스트 포트 $port가 반영되지 않았습니다." >&2
     echo "확인: docker compose --env-file '$env_file' -f '$ROOT_DIR/compose.yaml' -f '$ROOT_DIR/compose.server.yaml' -p '$project' config" >&2
@@ -153,11 +147,8 @@ MANIFEST_TMP="$STATE_DIR/credentials.tsv.tmp"
 MANIFEST="$STATE_DIR/credentials.tsv"
 printf 'instance\tproject\turl\taccess_user\taccess_password\n' > "$MANIFEST_TMP"
 
-health_host="$LAB_BIND_IP"
-if [[ "$health_host" == "0.0.0.0" ]]; then
-  health_host="127.0.0.1"
-fi
-access_host="${LAB_ACCESS_HOST:-$health_host}"
+health_host="127.0.0.1"
+access_host="${LAB_ACCESS_HOST:-127.0.0.1}"
 
 for ((number = 1; number <= INSTANCE_COUNT; number++)); do
   instance="$(printf '%02d' "$number")"
@@ -187,14 +178,13 @@ for ((number = 1; number <= INSTANCE_COUNT; number++)); do
 
   cat > "$env_file" <<EOF
 COMPOSE_PROJECT_NAME=$project
-LAB_BIND_IP=$LAB_BIND_IP
 LAB_PORT=$port
 LAB_PRIVATE_SUBNET=$private_subnet
 LAB_INGRESS_NETWORK=$LAB_INGRESS_NETWORK
 LAB_HTPASSWD_FILE=$htpasswd_file
 EOF
 
-  echo "[$instance/$INSTANCE_COUNT] $project 시작: $LAB_BIND_IP:$port"
+  echo "[$instance/$INSTANCE_COUNT] $project 시작: 호스트 포트 $port"
   validate_resolved_port "$env_file" "$project" "$port"
   prepare_host_port "$project" "$port"
 
