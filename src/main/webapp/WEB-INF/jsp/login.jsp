@@ -9,4 +9,4 @@
     <details class="account-check"><summary>계정 등록 여부 확인</summary><p>로그인 전에 아이디가 등록되어 있는지 확인할 수 있습니다.</p><form id="account-check-form"><label>확인할 아이디<input name="accountUsername" autocomplete="off" required></label><button type="submit">등록 여부 확인</button></form><div class="account-check-result" role="status"></div></details>
     <a class="text-link" href="/services">이용 가능한 서비스 보기</a>
   </section>
-</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js" defer></script></body></html>
+</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js?v=20261118-2" defer></script></body></html>

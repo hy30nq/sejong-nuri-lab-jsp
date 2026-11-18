@@ -34,6 +34,7 @@ public final class ApiServlet extends HttpServlet {
     @Override protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws IOException { route(request, response); }
 
     private void route(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String path = Optional.ofNullable(request.getPathInfo()).orElse("/");
         try {

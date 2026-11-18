@@ -52,4 +52,4 @@
     <section class="panel"><h2>서비스 연결 상태</h2><p>세종누리 주요 서비스의 현재 운영 상태입니다.</p><% if (civicUser != null) { %><div class="health-card" id="health-card"><svg><use href="/assets/icons.svg#wifi"/></svg><span><small>세종누리 시민지원 통합포털</small><strong>상태 확인 중</strong></span><i></i><button class="secondary-button" id="health-refresh">새로고침</button></div><p class="health-time" id="health-time">상태 정보를 불러오는 중입니다.</p><% } else { %><a class="primary-button" href="/login?next=%2Fstatus">로그인하고 연결 상태 보기</a><% } %></section>
   <% } %>
   </section></div>
-</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js" defer></script></body></html>
+</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js?v=20261118-2" defer></script></body></html>

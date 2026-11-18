@@ -11,4 +11,4 @@
     <section><div class="directory-number">03</div><div><h2>계정·참여</h2><p>본인 확인, 알림, 시민 의견 서비스를 이용합니다.</p></div><ul><li><a href="/board">시민 의견 게시판 <svg><use href="/assets/icons.svg#arrow-right"/></svg></a></li><li><a href="/identity">본인 확인 <svg><use href="/assets/icons.svg#arrow-right"/></svg></a></li><li><a href="/settings">알림 설정 <svg><use href="/assets/icons.svg#arrow-right"/></svg></a></li></ul></section>
   </div>
   <section class="directory-action"><div><h2>신청할 민원을 정하셨나요?</h2><p>신청 전에 준비할 증빙자료와 처리 기간을 확인할 수 있습니다.</p></div><a class="primary-button" href="/apply">민원 신청하기 <svg><use href="/assets/icons.svg#arrow-right"/></svg></a></section>
-</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js" defer></script></body></html>
+</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js?v=20261118-2" defer></script></body></html>

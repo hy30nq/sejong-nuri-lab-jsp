@@ -2,7 +2,7 @@ const $ = (selector, root = document) => root.querySelector(selector)
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)]
 
 async function api(path, options = {}) {
-  const init = { ...options, headers: { ...(options.body && !(options.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}), ...(options.headers || {}) } }
+  const init = { ...options, headers: { ...(options.body && !(options.body instanceof FormData) ? { 'Content-Type': 'application/json; charset=UTF-8' } : {}), ...(options.headers || {}) } }
   const response = await fetch(path, init)
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: '요청을 처리하지 못했습니다.' }))
@@ -81,14 +81,15 @@ if (document.body.dataset.page === 'services') {
 
 $('#application-form')?.addEventListener('submit', async event => {
   event.preventDefault()
-  const form = new FormData(event.currentTarget)
+  const formElement = event.currentTarget
+  const form = new FormData(formElement)
   try {
     const result = await api('/api/applications', { method: 'POST', body: JSON.stringify({ category: form.get('category'), title: form.get('title'), detail: form.get('detail') }) })
-    event.currentTarget.parentElement.hidden = true
+    formElement.parentElement.hidden = true
     const success = $('#application-success')
     $('strong', success).textContent = result.displayId
     success.hidden = false
-  } catch (error) { showMessage(error.message, false, $('.form-message', event.currentTarget)) }
+  } catch (error) { showMessage(error.message, false, $('.form-message', formElement)) }
 })
 
 if (document.body.dataset.page === 'civic') {
@@ -128,8 +129,8 @@ if (document.body.dataset.page === 'civic') {
     }
     loadPosts().catch(error => showMessage(error.message))
     $('#board-form')?.addEventListener('submit', async event => {
-      event.preventDefault(); const form = new FormData(event.currentTarget)
-      try { await api('/api/board/posts', { method: 'POST', body: JSON.stringify({ content: form.get('content') }) }); event.currentTarget.reset(); await loadPosts(); showMessage('의견이 등록되었습니다.', true) }
+      event.preventDefault(); const formElement = event.currentTarget; const form = new FormData(formElement)
+      try { await api('/api/board/posts', { method: 'POST', body: JSON.stringify({ content: form.get('content') }) }); formElement.reset(); await loadPosts(); showMessage('의견이 등록되었습니다.', true) }
       catch (error) { showMessage(error.message) }
     })
   }
@@ -202,6 +203,6 @@ if (document.body.dataset.page === 'admin') {
     account.innerHTML = '<div class="table-head"><span>아이디</span><span>이름</span><span>소속·담당</span><span>권한</span></div>' + overview.accounts.map(item => `<div class="table-row"><span>${escapeHtml(item.username)}</span><strong>${escapeHtml(item.displayName)}</strong><span>${escapeHtml(item.department)}</span><span>${item.role === 'staff' ? '직원' : '시민'}</span></div>`).join('')
   }
   async function loadOverview() { try { overview = await api('/api/admin/overview'); render() } catch (error) { showMessage(error.message) } }
-  $('#notice-form')?.addEventListener('submit', async event => { event.preventDefault(); const form = new FormData(event.currentTarget); try { await api('/api/admin/notices', { method: 'POST', body: JSON.stringify({ kind: form.get('kind'), title: form.get('title'), body: form.get('body') }) }); event.currentTarget.reset(); showMessage('공지를 등록했습니다.', true); await loadOverview() } catch (error) { showMessage(error.message) } })
+  $('#notice-form')?.addEventListener('submit', async event => { event.preventDefault(); const formElement = event.currentTarget; const form = new FormData(formElement); try { await api('/api/admin/notices', { method: 'POST', body: JSON.stringify({ kind: form.get('kind'), title: form.get('title'), body: form.get('body') }) }); formElement.reset(); showMessage('공지를 등록했습니다.', true); await loadOverview() } catch (error) { showMessage(error.message) } })
   loadOverview()
 }

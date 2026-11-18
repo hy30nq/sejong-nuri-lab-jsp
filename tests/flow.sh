@@ -19,6 +19,7 @@ expect_contains "$health" '"runtime":"WildFly"'
 home=$(curl -fsS "$base_url/")
 expect_contains "$home" '필요한 시민 서비스를 찾으세요'
 expect_contains "$home" 'data-page="home"'
+expect_contains "$home" '/assets/app.js?v=20261118-2'
 
 styles=$(curl -fsS "$base_url/assets/styles.css")
 expect_contains "$styles" '.main-header'
@@ -60,8 +61,12 @@ expect_contains "$ssrf" 'TRAINING_ONLY_ACCESS_KEY'
 xss=$(curl -fsS -b "$citizen_cookie" -H 'Content-Type: application/json' \
   -d '{"content":"<img src=x onerror=console.log(\"training-xss\")>"}' "$base_url/api/board/posts")
 expect_contains "$xss" 'training-xss'
+korean_post=$(curl -fsS -b "$citizen_cookie" -H 'Content-Type: application/json' \
+  -d '{"content":"한글 의견 등록 확인"}' "$base_url/api/board/posts")
+expect_contains "$korean_post" '한글 의견 등록 확인'
 posts=$(curl -fsS "$base_url/api/board/posts")
 expect_contains "$posts" 'training-xss'
+expect_contains "$posts" '한글 의견 등록 확인'
 
 csrf=$(curl -fsS -b "$citizen_cookie" "$base_url/api/citizens/preferences/email?enabled=false")
 expect_contains "$csrf" '"emailEnabled":false'
