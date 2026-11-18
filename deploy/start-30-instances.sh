@@ -126,7 +126,7 @@ mv "$MANIFEST_TMP" "$MANIFEST"
 chmod 600 "$MANIFEST"
 
 echo
-echo "$INSTANCE_COUNT개 인스턴스 시작 완료"
+echo "${INSTANCE_COUNT}개 인스턴스 시작 완료"
 echo "포트 범위: $BASE_PORT-$((BASE_PORT + INSTANCE_COUNT - 1))"
 echo "교육생별 접속 정보: $MANIFEST"
 echo "주의: 접속 정보 파일에는 평문 비밀번호가 있으므로 강사만 읽을 수 있게 유지하세요."

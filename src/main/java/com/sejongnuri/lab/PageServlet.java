@@ -31,7 +31,7 @@ public final class PageServlet extends HttpServlet {
                 forward(request, response, "home"); return;
             }
             if ("/login".equals(path)) {
-                if (user != null) { response.sendRedirect("staff".equals(user.get("role")) ? "/admin" : "/account"); return; }
+                if (user != null) { redirect(response, "staff".equals(user.get("role")) ? "/admin" : "/account"); return; }
                 request.setAttribute("pageTitle", "로그인 | 세종누리"); forward(request, response, "login"); return;
             }
             if ("/services".equals(path)) { request.setAttribute("pageTitle", "전체 서비스 | 세종누리"); forward(request, response, "services"); return; }
@@ -48,7 +48,7 @@ public final class PageServlet extends HttpServlet {
             }
             if ("/admin".equals(path)) {
                 if (user == null) { redirectLogin(request, response); return; }
-                if (!"staff".equals(user.get("role"))) { response.sendRedirect("/account"); return; }
+                if (!"staff".equals(user.get("role"))) { redirect(response, "/account"); return; }
                 request.setAttribute("pageTitle", "시민 서비스 관리자 | 세종누리"); forward(request, response, "admin"); return;
             }
             String section = path.substring(1);
@@ -58,7 +58,7 @@ public final class PageServlet extends HttpServlet {
                 request.setAttribute("pageTitle", title(section) + " | 세종누리");
                 forward(request, response, "civic"); return;
             }
-            response.sendRedirect("/");
+            redirect(response, "/");
         } catch (Exception error) {
             throw new ServletException(error);
         }
@@ -68,8 +68,20 @@ public final class PageServlet extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/jsp/" + page + ".jsp").forward(request, response);
     }
 
-    private static void redirectLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendRedirect("/login?next=" + java.net.URLEncoder.encode(request.getRequestURI(), java.nio.charset.StandardCharsets.UTF_8));
+    private static void redirectLogin(HttpServletRequest request, HttpServletResponse response) {
+        redirect(response, "/login?next=" + java.net.URLEncoder.encode(request.getRequestURI(), java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Emit an origin-relative redirect so reverse-proxy host or port rewriting
+     * can never send a trainee from :11191-:11220 back to port 80.
+     */
+    private static void redirect(HttpServletResponse response, String location) {
+        if (!location.startsWith("/") || location.startsWith("//")) {
+            throw new IllegalArgumentException("리다이렉트는 내부 경로만 허용됩니다.");
+        }
+        response.setStatus(HttpServletResponse.SC_FOUND);
+        response.setHeader("Location", location);
     }
 
     private static String title(String section) {

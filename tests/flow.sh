@@ -25,12 +25,23 @@ expect_contains "$styles" '.main-header'
 scripts=$(curl -fsS "$base_url/assets/app.js")
 expect_contains "$scripts" 'data-logout'
 
+# Reverse proxies must not turn a protected-page redirect into http://host:80.
+redirect_headers=$(curl -sS -D - -o /dev/null \
+  -H 'Host: training.example.invalid:54321' "$base_url/complaints")
+expect_contains "$redirect_headers" 'Location: /login?next=%2Fcomplaints'
+case "$redirect_headers" in
+  *'Location: http://'*) echo 'FAIL: redirect leaked an absolute HTTP origin' >&2; exit 1 ;;
+esac
+
 registered=$(curl -fsS --get --data-urlencode "username=admin' AND UNICODE(SUBSTR(recovery_code, 1, 1)) > 70 -- " "$base_url/api/public/account-check")
 expect_contains "$registered" '"registered":true'
 
 login=$(curl -fsS -c "$citizen_cookie" -H 'Content-Type: application/json' \
   -d '{"username":"hangaram","password":"hangaram"}' "$base_url/api/citizens/login")
 expect_contains "$login" '"username":"hangaram"'
+
+signed_in_redirect=$(curl -sS -D - -o /dev/null -b "$citizen_cookie" "$base_url/login")
+expect_contains "$signed_in_redirect" 'Location: /account'
 
 idor=$(curl -fsS -b "$citizen_cookie" --get --data-urlencode 'receiptNo=APP-1000' "$base_url/api/applications")
 expect_contains "$idor" '김다정'

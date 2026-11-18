@@ -33,7 +33,7 @@ docker network ls
 학교 서버 내부 IP가 `10.20.30.40`인 예시입니다.
 
 ```bash
-chmod +x deploy/start-30-instances.sh deploy/stop-30-instances.sh
+chmod +x deploy/start-30-instances.sh deploy/stop-30-instances.sh deploy/down-30-instances.sh
 LAB_BIND_IP=10.20.30.40 ./deploy/start-30-instances.sh
 ```
 
@@ -73,13 +73,31 @@ deploy/state/credentials.tsv
 | 다른 시민 | `dajeong` | `dajeong` |
 | 관리자 | `admin` | `admin` |
 
-## 전체 중지
+스크립트는 폴더를 30번 복사하지 않고, 동일한 이미지를 공유하는 독립 Compose 프로젝트 30개를 만듭니다. 각 프로젝트의 포트, DB·업로드 볼륨, 세션, 내부 네트워크와 Basic Auth 계정은 서로 분리됩니다.
+
+## 전체 일시 중지
 
 ```bash
 ./deploy/stop-30-instances.sh
 ```
 
 `stop`만 실행하므로 DB와 업로드 데이터는 보존됩니다. 다시 시작할 때 시작 스크립트를 실행하면 기존 외부 인증 비밀번호와 볼륨을 재사용합니다.
+
+## 전체 내리기
+
+컨테이너와 인스턴스별 네트워크를 모두 제거하되 DB와 업로드 볼륨은 보존합니다.
+
+```bash
+./deploy/down-30-instances.sh
+```
+
+DB와 업로드까지 완전히 초기화할 때만 다음처럼 실행합니다.
+
+```bash
+REMOVE_VOLUMES=1 ./deploy/down-30-instances.sh
+```
+
+`11191`부터 `11220`까지 각 포트로 들어온 요청은 리다이렉트 후에도 같은 포트를 유지합니다.
 
 ## 방화벽
 

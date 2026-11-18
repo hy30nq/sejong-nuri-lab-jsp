@@ -62,4 +62,4 @@ docker compose down
 
 ## 학교 서버에 교육생별 30개 배포
 
-`11191`부터 `11220`까지 교육생별 독립 인스턴스를 실행하는 서버용 구성과 쉘 스크립트는 [학교 Linux 서버 배포 안내](./deploy/README.md)를 참고하세요.
+`11191`부터 `11220`까지 교육생별 독립 인스턴스를 실행하는 `deploy/start-30-instances.sh`, 일시 중지하는 `deploy/stop-30-instances.sh`, 컨테이너를 모두 내리는 `deploy/down-30-instances.sh`가 준비되어 있습니다. 자세한 내용은 [학교 Linux 서버 배포 안내](./deploy/README.md)를 참고하세요.
