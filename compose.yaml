@@ -53,7 +53,7 @@ services:
       portal:
         condition: service_healthy
     ports:
-      - "${LAB_BIND_IP:-127.0.0.1}:${LAB_PORT:-11191}:11191"
+      - "${LAB_BIND_IP:-0.0.0.0}:${LAB_PORT:-11191}:11191"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks: [private, ingress]

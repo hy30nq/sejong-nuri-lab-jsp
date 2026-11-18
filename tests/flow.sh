@@ -13,6 +13,9 @@ expect_contains() {
   esac
 }
 
+compose_config=$(docker compose config)
+expect_contains "$compose_config" 'host_ip: 0.0.0.0'
+
 health=$(curl -fsS "$base_url/api/health")
 expect_contains "$health" '"runtime":"WildFly"'
 
