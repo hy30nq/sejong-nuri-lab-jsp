@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
+expect_contains() {
+  case "$1" in
+    *"$2"*) ;;
+    *) echo "FAIL: expected '$2'" >&2; exit 1 ;;
+  esac
+}
+
+for script in deploy/start-30-instances.sh deploy/stop-30-instances.sh deploy/down-30-instances.sh; do
+  bash -n "$script"
+done
+
+default_config="$(docker compose -f compose.yaml config)"
+expect_contains "$default_config" 'host_ip: 0.0.0.0'
+expect_contains "$default_config" 'target: 11191'
+expect_contains "$default_config" 'published: "11191"'
+
+server_config="$(
+  COMPOSE_PROJECT_NAME=sejong-lab-30 \
+  LAB_BIND_IP=0.0.0.0 \
+  LAB_PORT=11220 \
+  LAB_PRIVATE_SUBNET=10.240.30.0/29 \
+  LAB_INGRESS_NETWORK=sejong-lab-ingress \
+  LAB_HTPASSWD_FILE=/tmp/sejong-lab-test.htpasswd \
+  docker compose -f compose.yaml -f compose.server.yaml -p sejong-lab-30 config
+)"
+expect_contains "$server_config" 'host_ip: 0.0.0.0'
+expect_contains "$server_config" 'target: 11191'
+expect_contains "$server_config" 'published: "11220"'
+expect_contains "$server_config" 'name: sejong-lab-ingress'
+
+echo 'PASS: deployment scripts and port mappings'

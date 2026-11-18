@@ -36,6 +36,7 @@ docker compose up -d --build
 
 ```bash
 ./gradlew --no-daemon test
+./tests/deploy-config.sh
 ./tests/flow.sh
 docker compose ps
 docker compose down

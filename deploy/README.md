@@ -46,7 +46,11 @@ LAB_BIND_IP=0.0.0.0
 LAB_PRIVATE_PREFIX=10.240
 LAB_INGRESS_NETWORK=sejong-lab-ingress
 LAB_INGRESS_SUBNET=10.239.255.0/24
+RESET_EXISTING_INSTANCES=1
+REPLACE_PORT_OWNERS=1
 ```
+
+기본 실행은 이전에 이 스크립트가 생성한 인스턴스를 먼저 모두 내린 뒤 새로 시작하며 DB와 업로드 볼륨은 보존합니다. 또한 `11191~11220`의 각 대상 포트를 이미 게시 중인 컨테이너가 있으면 같은 Compose 프로젝트의 컨테이너와 네트워크를 모두 내리고 새 실습 인스턴스로 교체합니다. 기존 볼륨은 삭제하지 않습니다. 기존 인스턴스를 재사용하거나 포트 사용 프로젝트를 자동 제거하지 않으려면 각각 `RESET_EXISTING_INSTANCES=0`, `REPLACE_PORT_OWNERS=0`을 지정할 수 있습니다.
 
 로컬 접속 주소는 자동으로 `127.0.0.1`을 사용합니다. 서버에서 교육생에게 배포할 주소만 별도로 표시하려면 `LAB_ACCESS_HOST`를 지정할 수 있습니다. 바인딩은 계속 `0.0.0.0`입니다.
 
@@ -71,6 +75,8 @@ deploy/state/credentials.tsv
 | 관리자 | `admin` | `admin` |
 
 스크립트는 폴더를 30번 복사하지 않고, 동일한 이미지를 공유하는 독립 Compose 프로젝트 30개를 만듭니다. 각 프로젝트의 포트, DB·업로드 볼륨, 세션, 내부 네트워크와 Basic Auth 계정은 서로 분리됩니다.
+
+시작 스크립트는 각 인스턴스를 올리기 전에 Compose의 `host_ip`와 `published` 값을 검사하고, 실행 후 `docker compose port`로 실제 호스트 포트 게시 여부를 다시 확인합니다. 포트 게시가 누락되면 해당 인스턴스의 `web` 컨테이너만 한 번 강제 재생성하며, 그래도 실패하면 컨테이너 상태와 최근 로그를 출력하고 즉시 중단합니다.
 
 ## 전체 일시 중지
 
