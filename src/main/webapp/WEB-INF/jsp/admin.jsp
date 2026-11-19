@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %><%@ page import="static com.sejongnuri.lab.JspUtil.h" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" session="false" %><%@ page import="static com.sejongnuri.lab.JspUtil.h" %>
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><%= h(request.getAttribute("pageTitle")) %></title><link rel="stylesheet" href="/assets/styles.css"></head>
 <body data-page="admin"><%@ include file="fragments/header.jspf" %><main class="shell inner-page admin-page">
   <header class="admin-heading"><div><h1>시민 서비스 관리자</h1><p>민원 처리와 시민 의견, 공지와 계정 현황을 관리합니다.</p></div><a class="secondary-button" href="/">시민포털 보기</a></header>
@@ -10,4 +10,4 @@
     <div data-admin-panel="notices" hidden><section class="panel"><h2>새 공지 등록</h2><form class="stack-form" id="notice-form"><label>공지 분류<select name="kind"><option value="normal">일반</option><option value="important">중요</option></select></label><label>공지 제목<input name="title" maxlength="120" placeholder="공지 제목을 입력하세요" required></label><label>공지 내용<textarea name="body" rows="6" maxlength="3000" placeholder="시민에게 안내할 내용을 입력하세요" required></textarea></label><button class="primary-button">공지 등록</button></form></section><section class="panel"><h2>등록된 공지</h2><div class="simple-list admin-notices"></div></section></div>
     <div data-admin-panel="accounts" hidden><section class="panel"><h2>포털 계정 현황</h2><p>시민과 직원의 포털 계정을 확인합니다.</p><div class="data-table admin-accounts"></div></section></div>
   </section></div>
-</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js?v=20261118-3" defer></script></body></html>
+</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js?v=20261119-2" defer></script></body></html>

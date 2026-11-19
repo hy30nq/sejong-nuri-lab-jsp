@@ -14,12 +14,13 @@ import java.util.Set;
         "/complaints", "/board", "/documents", "/attachments", "/certificates", "/settings", "/identity", "/status"})
 public final class PageServlet extends HttpServlet {
     private static final Set<String> CIVIC = Set.of("account", "complaints", "board", "documents", "attachments", "certificates", "settings", "identity", "status");
+    private static final Set<String> PUBLIC_CIVIC = Set.of("board", "status");
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setCharacterEncoding("UTF-8");
         try {
-            Map<String, Object> user = TrainingContext.defaultUser();
+            Map<String, Object> user = SessionService.currentUser(request);
             String path = request.getServletPath();
             request.setAttribute("user", user);
             request.setAttribute("activePath", path);
@@ -30,7 +31,8 @@ public final class PageServlet extends HttpServlet {
                 forward(request, response, "home"); return;
             }
             if ("/login".equals(path)) {
-                redirect(response, "/"); return;
+                if (user != null) { redirect(response, "staff".equals(user.get("role")) ? "/admin" : "/account"); return; }
+                request.setAttribute("pageTitle", "로그인 | 세종누리"); forward(request, response, "login"); return;
             }
             if ("/services".equals(path)) { request.setAttribute("pageTitle", "전체 서비스 | 세종누리"); forward(request, response, "services"); return; }
             if ("/notices".equals(path)) {
@@ -41,13 +43,17 @@ public final class PageServlet extends HttpServlet {
                 request.setAttribute("pageTitle", "공지사항 | 세종누리"); forward(request, response, "notices"); return;
             }
             if ("/apply".equals(path)) {
+                if (user == null) { redirectLogin(request, response); return; }
                 request.setAttribute("pageTitle", "새 민원 신청 | 세종누리"); forward(request, response, "apply"); return;
             }
             if ("/admin".equals(path)) {
+                if (user == null) { redirectLogin(request, response); return; }
+                if (!"staff".equals(user.get("role"))) { redirect(response, "/account"); return; }
                 request.setAttribute("pageTitle", "시민 서비스 관리자 | 세종누리"); forward(request, response, "admin"); return;
             }
             String section = path.substring(1);
             if (CIVIC.contains(section)) {
+                if (user == null && !PUBLIC_CIVIC.contains(section)) { redirectLogin(request, response); return; }
                 request.setAttribute("section", section);
                 request.setAttribute("pageTitle", title(section) + " | 세종누리");
                 forward(request, response, "civic"); return;
@@ -60,6 +66,10 @@ public final class PageServlet extends HttpServlet {
 
     private static void forward(HttpServletRequest request, HttpServletResponse response, String page) throws ServletException, IOException {
         request.getRequestDispatcher("/WEB-INF/jsp/" + page + ".jsp").forward(request, response);
+    }
+
+    private static void redirectLogin(HttpServletRequest request, HttpServletResponse response) {
+        redirect(response, "/login?next=" + java.net.URLEncoder.encode(request.getRequestURI(), java.nio.charset.StandardCharsets.UTF_8));
     }
 
     /**

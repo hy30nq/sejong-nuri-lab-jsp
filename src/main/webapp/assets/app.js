@@ -36,6 +36,11 @@ $('.mobile-menu-button')?.addEventListener('click', event => {
   event.currentTarget.setAttribute('aria-expanded', String(!menu.hidden))
 })
 
+$('[data-logout]')?.addEventListener('click', async () => {
+  await api('/api/citizens/logout', { method: 'POST' })
+  location.href = '/login'
+})
+
 $('#account-check-form')?.addEventListener('submit', async event => {
   event.preventDefault()
   const username = String(new FormData(event.currentTarget).get('accountUsername') || '')
@@ -46,6 +51,22 @@ $('#account-check-form')?.addEventListener('submit', async event => {
     result.textContent = `'${username}' 아이디는 등록되어 ${data.registered ? '있습니다.' : '있지 않습니다.'}`
   } catch (error) { result.textContent = error.message }
 })
+
+if (document.body.dataset.page === 'login') {
+  $('#login-form')?.addEventListener('submit', async event => {
+    event.preventDefault()
+    const message = $('.form-message', event.currentTarget)
+    message.hidden = true
+    const form = new FormData(event.currentTarget)
+    try {
+      const result = await api('/api/citizens/login', { method: 'POST', body: JSON.stringify({ username: form.get('username'), password: form.get('password') }) })
+      const allowed = new Set(['/apply', '/account', '/admin', '/complaints', '/board', '/documents', '/attachments', '/certificates', '/settings', '/identity', '/status'])
+      const requested = new URLSearchParams(location.search).get('next') || ''
+      const base = requested.split(/[?#]/)[0]
+      location.href = allowed.has(base) && !requested.includes('\\') ? requested : (result.user.role === 'staff' ? '/admin' : '/account')
+    } catch (error) { showMessage(error.message, false, message) }
+  })
+}
 
 if (document.body.dataset.page === 'services') {
   const input = $('#service-search')

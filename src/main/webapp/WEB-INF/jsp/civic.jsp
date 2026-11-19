@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" session="false" %>
 <%@ page import="java.util.Map" %><%@ page import="static com.sejongnuri.lab.JspUtil.h" %>
 <%
   String section = String.valueOf(request.getAttribute("section"));
@@ -29,7 +29,7 @@
     <section class="panel application-detail" id="application-detail" hidden></section>
 
   <% } else if ("board".equals(section)) { %>
-    <section class="panel"><h2>새 의견 등록</h2><p>생활 속 불편한 점이나 개선 제안을 남겨주세요.</p><form class="stack-form" id="board-form"><label>의견 내용<textarea name="content" rows="4" maxlength="3000" placeholder="의견을 입력하세요" required></textarea></label><button class="primary-button">의견 등록</button></form></section>
+    <section class="panel"><h2>새 의견 등록</h2><p>생활 속 불편한 점이나 개선 제안을 남겨주세요.</p><% if (civicUser != null) { %><form class="stack-form" id="board-form"><label>의견 내용<textarea name="content" rows="4" maxlength="3000" placeholder="의견을 입력하세요" required></textarea></label><button class="primary-button">의견 등록</button></form><% } else { %><a class="primary-button" href="/login?next=%2Fboard">로그인하고 의견 등록</a><% } %></section>
     <section class="panel"><h2>시민 의견</h2><div class="post-list" id="board-posts"></div></section>
 
   <% } else if ("documents".equals(section)) { %>
@@ -49,7 +49,7 @@
     <section class="panel"><h2>휴대전화 본인 확인</h2><p>등록된 휴대전화로 무작위 8자리 인증번호를 전송했습니다. 3분 안에 입력해 주세요.</p><div class="identity-state" id="identity-state"><svg><use href="/assets/icons.svg#shield"/></svg><span><strong>본인 확인 전</strong><small>인증번호 확인 후 일부 서비스를 이용할 수 있습니다.</small></span></div><form class="stack-form" id="identity-form"><label>인증번호<input name="code" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" placeholder="8자리 인증번호" required></label><button class="primary-button">본인 확인</button></form></section>
 
   <% } else { %>
-    <section class="panel"><h2>서비스 연결 상태</h2><p>세종누리 주요 서비스의 현재 운영 상태입니다.</p><div class="health-card" id="health-card"><svg><use href="/assets/icons.svg#wifi"/></svg><span><small>세종누리 시민지원 통합포털</small><strong>상태 확인 중</strong></span><i></i><button class="secondary-button" id="health-refresh">새로고침</button></div><p class="health-time" id="health-time">상태 정보를 불러오는 중입니다.</p></section>
+    <section class="panel"><h2>서비스 연결 상태</h2><p>세종누리 주요 서비스의 현재 운영 상태입니다.</p><% if (civicUser != null) { %><div class="health-card" id="health-card"><svg><use href="/assets/icons.svg#wifi"/></svg><span><small>세종누리 시민지원 통합포털</small><strong>상태 확인 중</strong></span><i></i><button class="secondary-button" id="health-refresh">새로고침</button></div><p class="health-time" id="health-time">상태 정보를 불러오는 중입니다.</p><% } else { %><a class="primary-button" href="/login?next=%2Fstatus">로그인하고 연결 상태 보기</a><% } %></section>
   <% } %>
   </section></div>
-</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js?v=20261118-3" defer></script></body></html>
+</main><%@ include file="fragments/footer.jspf" %><script src="/assets/app.js?v=20261119-2" defer></script></body></html>

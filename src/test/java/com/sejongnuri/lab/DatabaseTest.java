@@ -29,14 +29,14 @@ class DatabaseTest {
     }
 
     @Test
-    void removesPasswordsAndSessionsFromTheTrainingPortal() throws Exception {
+    void keepsTrainingCredentialsAndStartsWithoutAutomaticSessions() throws Exception {
         Map<String, Object> passwordColumns = Database.one("""
             SELECT COUNT(*) AS count
               FROM information_schema.columns
              WHERE table_name = 'portal_accounts' AND column_name = 'password'
             """);
-        assertEquals(0L, ((Number) passwordColumns.get("count")).longValue());
-        assertThrows(Exception.class, () -> Database.query("SELECT * FROM portal_sessions"));
-        assertEquals("hangaram", TrainingContext.defaultUser().get("username"));
+        assertEquals(1L, ((Number) passwordColumns.get("count")).longValue());
+        assertEquals("hangaram", Database.one("SELECT password FROM portal_accounts WHERE username = ?", "hangaram").get("password"));
+        assertEquals(0L, ((Number) Database.one("SELECT COUNT(*) AS count FROM portal_sessions").get("count")).longValue());
     }
 }

@@ -41,15 +41,21 @@ public final class ApiServlet extends HttpServlet {
             if ("GET".equals(request.getMethod()) && "/health".equals(path)) {
                 json(response, 200, Map.of("ok", true, "service", "sejong-nuri-jsp", "runtime", "WildFly", "trainingMode", true)); return;
             }
+            if ("GET".equals(request.getMethod()) && "/citizens/session".equals(path)) {
+                Map<String, Object> user = SessionService.currentUser(request);
+                Map<String, Object> body = new LinkedHashMap<>(); body.put("user", user); json(response, 200, body); return;
+            }
             if ("GET".equals(request.getMethod()) && "/public/account-check".equals(path)) { accountCheck(request, response); return; }
-            if ("GET".equals(request.getMethod()) && "/public/dashboard".equals(path)) { dashboard(response); return; }
+            if ("POST".equals(request.getMethod()) && "/citizens/login".equals(path)) { login(request, response); return; }
+            if ("POST".equals(request.getMethod()) && "/citizens/logout".equals(path)) { SessionService.clear(request, response); response.setStatus(204); return; }
+            if ("GET".equals(request.getMethod()) && "/public/dashboard".equals(path)) { dashboard(request, response); return; }
             if ("GET".equals(request.getMethod()) && "/public/notices".equals(path)) { notices(response); return; }
             if ("GET".equals(request.getMethod()) && path.matches("/public/notices/\\d+")) { notice(path, response); return; }
 
-            if ("GET".equals(request.getMethod()) && "/admin/overview".equals(path)) { adminOverview(response); return; }
+            if ("GET".equals(request.getMethod()) && "/admin/overview".equals(path)) { adminOverview(request, response); return; }
             if ("PATCH".equals(request.getMethod()) && path.matches("/admin/applications/\\d+/status")) { adminStatus(request, response, path); return; }
             if ("POST".equals(request.getMethod()) && "/admin/notices".equals(path)) { adminNotice(request, response); return; }
-            if ("DELETE".equals(request.getMethod()) && path.matches("/admin/board/posts/\\d+")) { adminDeletePost(response, path); return; }
+            if ("DELETE".equals(request.getMethod()) && path.matches("/admin/board/posts/\\d+")) { adminDeletePost(request, response, path); return; }
 
             if ("POST".equals(request.getMethod()) && "/applications".equals(path)) { createApplication(request, response); return; }
             if ("GET".equals(request.getMethod()) && "/applications".equals(path)) { applications(request, response); return; }
@@ -67,6 +73,8 @@ public final class ApiServlet extends HttpServlet {
             if ("GET".equals(request.getMethod()) && path.matches("/certificates/\\d+/download")) { certificateDownload(request, response, path); return; }
 
             json(response, 404, Map.of("message", "요청한 API를 찾을 수 없습니다."));
+        } catch (SecurityException error) {
+            json(response, error.getMessage().startsWith("관리자") ? 403 : 401, Map.of("message", error.getMessage()));
         } catch (IllegalArgumentException error) {
             json(response, 400, Map.of("message", error.getMessage()));
         } catch (Exception error) {
@@ -83,16 +91,35 @@ public final class ApiServlet extends HttpServlet {
         catch (SQLException error) { json(response, 400, Map.of("message", "계정 등록 여부를 확인할 수 없습니다.")); }
     }
 
-    private void dashboard(HttpServletResponse response) throws Exception {
-        Map<String, Object> user = TrainingContext.defaultUser();
-        String username = text(user.get("username"));
-        List<Map<String, Object>> applications = Database.query("""
+    private void login(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
+        Map<String, Object> input = body(request);
+        String username = text(input.get("username"));
+        String password = text(input.get("password"));
+        if (username.length() > 300 || password.length() > 128) { json(response, 400, Map.of("message", "로그인 입력 길이를 확인해 주세요.")); return; }
+        String query = """
+            SELECT c.username, c.display_name AS "displayName", c.department,
+                   c.training_note AS "trainingNote", a.role
+              FROM portal_accounts a JOIN citizens c ON c.username = a.username
+             WHERE a.username = '%s' AND a.password = '%s'
+            """.formatted(username, password);
+        Map<String, Object> user;
+        try { user = Database.unsafeOne(query); }
+        catch (SQLException error) { json(response, 400, Map.of("message", "로그인을 처리할 수 없습니다.")); return; }
+        if (user == null) { json(response, 401, Map.of("message", "아이디 또는 비밀번호를 확인해 주세요.")); return; }
+        SessionService.setCookie(response, SessionService.create(text(user.get("username"))));
+        json(response, 200, Map.of("user", user));
+    }
+
+    private void dashboard(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Map<String, Object> user = SessionService.currentUser(request);
+        String username = user == null ? "hangaram" : text(user.get("username"));
+        List<Map<String, Object>> applications = user == null ? List.of() : Database.query("""
             SELECT display_id AS id, title, status, updated_at AS "updatedAt", category AS department
               FROM applications WHERE owner_username = ? AND status <> '처리 완료'
              ORDER BY updated_at DESC, id DESC LIMIT 5
             """, username);
         List<Map<String, Object>> notices = Database.query("SELECT id, kind, title, published_at AS date FROM notices ORDER BY id DESC LIMIT 5");
-        json(response, 200, Map.of("user", Map.of("username", username, "displayName", user.get("displayName")), "complaints", applications, "notices", notices));
+        json(response, 200, Map.of("user", Map.of("username", username, "displayName", user == null ? "방문자" : user.get("displayName")), "complaints", applications, "notices", notices));
     }
 
     private void notices(HttpServletResponse response) throws Exception {
@@ -106,7 +133,8 @@ public final class ApiServlet extends HttpServlet {
         else json(response, 200, Map.of("notice", notice));
     }
 
-    private void adminOverview(HttpServletResponse response) throws Exception {
+    private void adminOverview(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        requireStaff(request);
         Map<String, Object> counts = new LinkedHashMap<>();
         counts.put("citizens", scalar("SELECT COUNT(*) AS \"value\" FROM portal_accounts WHERE role = 'citizen'"));
         counts.put("applications", scalar("SELECT COUNT(*) AS \"value\" FROM applications"));
@@ -128,6 +156,7 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void adminStatus(HttpServletRequest request, HttpServletResponse response, String path) throws Exception {
+        requireStaff(request);
         long id = Long.parseLong(path.split("/")[3]);
         String status = text(body(request).get("status"));
         if (!STATUSES.contains(status)) { json(response, 400, Map.of("message", "올바른 처리 상태를 선택해 주세요.")); return; }
@@ -137,7 +166,7 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void adminNotice(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> input = body(request);
+        requireStaff(request); Map<String, Object> input = body(request);
         String title = text(input.get("title")).trim(), content = text(input.get("body")).trim(), kind = text(input.get("kind"));
         if (kind.isBlank()) kind = "normal";
         if (title.isBlank() || title.length() > 120 || content.isBlank() || content.length() > 3000 || !Set.of("normal", "important").contains(kind)) {
@@ -147,14 +176,14 @@ public final class ApiServlet extends HttpServlet {
         json(response, 201, Map.of("id", id, "kind", kind, "title", title, "body", content, "publishedAt", LocalDate.now().toString()));
     }
 
-    private void adminDeletePost(HttpServletResponse response, String path) throws Exception {
-        long id = Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
+    private void adminDeletePost(HttpServletRequest request, HttpServletResponse response, String path) throws Exception {
+        requireStaff(request); long id = Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
         if (Database.execute("DELETE FROM board_posts WHERE id = ?", id) == 0) json(response, 404, Map.of("message", "게시글을 찾을 수 없습니다."));
         else response.setStatus(204);
     }
 
     private void createApplication(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> user = TrainingContext.defaultUser(), input = body(request);
+        Map<String, Object> user = requireUser(request), input = body(request);
         String category = text(input.get("category")).trim(), title = text(input.get("title")).trim(), detail = text(input.get("detail")).trim();
         if (!CATEGORIES.contains(category) || title.isBlank() || title.length() > 80 || detail.isBlank() || detail.length() > 3000) {
             json(response, 400, Map.of("message", "민원 분야와 제목(80자 이내)·상세 내용(3000자 이내)을 확인해 주세요.")); return;
@@ -168,7 +197,7 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void applications(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> user = TrainingContext.defaultUser(); String receipt = param(request, "receiptNo", "").trim();
+        Map<String, Object> user = requireUser(request); String receipt = param(request, "receiptNo", "").trim();
         if (!receipt.isBlank()) {
             Map<String, Object> item = Database.one("""
                 SELECT a.*, c.display_name AS applicant_name, c.phone AS applicant_phone,
@@ -187,6 +216,7 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void serviceStatus(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        requireUser(request);
         String target = "POST".equals(request.getMethod()) ? text(body(request).get("target")) : param(request, "target", "");
         if (target.isBlank() || target.length() > 1024) { json(response, 400, Map.of("message", "점검 대상을 확인해 주세요.")); return; }
         if ("1".equals(System.getenv("ENABLE_OS_COMMAND_LAB"))) {
@@ -198,13 +228,13 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void identityStatus(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> user = TrainingContext.defaultUser();
+        Map<String, Object> user = requireUser(request);
         Map<String, Object> row = Database.one("SELECT verified_at AS \"verifiedAt\" FROM identity_checks WHERE username = ?", user.get("username"));
         Map<String, Object> body = new LinkedHashMap<>(); body.put("verified", row != null); body.put("verifiedAt", row == null ? null : row.get("verifiedAt")); json(response, 200, body);
     }
 
     private void identityComplete(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> user = TrainingContext.defaultUser(), input = body(request);
+        Map<String, Object> user = requireUser(request), input = body(request);
         String step = text(input.get("verificationStep")), code = text(input.get("code"));
         if ("complete".equals(step) || ("verify".equals(step) && "12345678".equals(code))) {
             Database.execute("MERGE INTO identity_checks (username, verified_at) KEY(username) VALUES (?, CURRENT_TIMESTAMP)", user.get("username"));
@@ -213,6 +243,7 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void documentDownload(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        requireUser(request);
         String requested = param(request, "file", "guide.txt");
         Path root = Path.of(System.getenv().getOrDefault("TRAINING_DATA_ROOT", "src/main/webapp/WEB-INF/training_data")).resolve("file_lab").normalize();
         Path publicDocs = root.resolve("var/www/public");
@@ -223,6 +254,7 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void documentPreview(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        requireUser(request);
         URI uri;
         try { uri = URI.create(param(request, "url", "")); }
         catch (Exception error) { json(response, 400, Map.of("message", "올바른 URL을 입력해 주세요.")); return; }
@@ -238,6 +270,7 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void attachment(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        requireUser(request);
         Part part;
         try { part = request.getPart("attachment"); }
         catch (ServletException error) { json(response, 400, Map.of("message", "첨부파일이 필요합니다.")); return; }
@@ -259,7 +292,7 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void boardCreate(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> user = TrainingContext.defaultUser(); String content = text(body(request).get("content"));
+        Map<String, Object> user = requireUser(request); String content = text(body(request).get("content"));
         if (content.isBlank() || content.length() > 3000) { json(response, 400, Map.of("message", "의견은 1~3000자로 입력해 주세요.")); return; }
         if (scalar("SELECT COUNT(*) AS \"value\" FROM board_posts") >= 500) { json(response, 409, Map.of("message", "게시판 저장 한도에 도달했습니다. 강사에게 문의해 주세요.")); return; }
         long id = Database.insert("INSERT INTO board_posts (author, content) VALUES (?, ?)", user.get("displayName"), content);
@@ -267,22 +300,23 @@ public final class ApiServlet extends HttpServlet {
     }
 
     private void preferenceChange(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> user = TrainingContext.defaultUser(); boolean enabled = !"false".equals(param(request, "enabled", "true"));
+        Map<String, Object> user = requireUser(request); boolean enabled = !"false".equals(param(request, "enabled", "true"));
         Database.execute("MERGE INTO preferences (username, email_enabled) KEY(username) VALUES (?, ?)", user.get("username"), enabled);
         json(response, 200, Map.of("emailEnabled", enabled));
     }
 
     private void preferences(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> user = TrainingContext.defaultUser(), row = Database.one("SELECT email_enabled FROM preferences WHERE username = ?", user.get("username"));
+        Map<String, Object> user = requireUser(request), row = Database.one("SELECT email_enabled FROM preferences WHERE username = ?", user.get("username"));
         json(response, 200, Map.of("emailEnabled", row == null || Boolean.TRUE.equals(row.get("email_enabled"))));
     }
 
     private void certificates(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> user = TrainingContext.defaultUser();
+        Map<String, Object> user = requireUser(request);
         json(response, 200, Map.of("certificates", Database.query("SELECT id, title, status FROM certificates WHERE owner_username = ? ORDER BY id", user.get("username"))));
     }
 
     private void certificateDownload(HttpServletRequest request, HttpServletResponse response, String path) throws Exception {
+        requireUser(request);
         long id = Long.parseLong(path.split("/")[2]);
         Map<String, Object> certificate = Database.one("""
             SELECT cert.*, c.display_name AS owner_name
@@ -298,6 +332,18 @@ public final class ApiServlet extends HttpServlet {
             <title>%s</title><style>body{margin:0;background:#eef3f6;color:#102d4d;font-family:sans-serif}.sheet{position:relative;width:min(760px,calc(100%% - 48px));margin:48px auto;padding:64px;border:10px double #174266;background:#fff}.mark{color:#13878b;font-weight:800}.sheet h1{text-align:center;font-size:38px}.grid{display:grid;grid-template-columns:150px 1fr;border-top:2px solid #174266}.grid>*{padding:16px;border-bottom:1px solid #cad8e2}.grid strong{background:#f0f6f8}.notice{margin-top:32px;padding:18px;border-left:5px solid #c54136;background:#fff2ef}.footer{margin-top:45px;text-align:center}</style></head>
             <body><main class="sheet"><div class="mark">SEJONG NURI DIGITAL CERTIFICATE</div><h1>전자 증명서</h1><div class="grid"><strong>문서번호</strong><span>SN-CERT-%d-2026</span><strong>문서명</strong><span>%s</span><strong>신청인</strong><span>%s (%s)</span><strong>처리상태</strong><span>%s</span><strong>발급시각</strong><span>%s</span></div>%s<div class="footer">위 내용을 세종누리 시민지원 통합포털에서 발급합니다.<br><b>세종누리 시민지원센터</b></div></main></body></html>
             """.formatted(title, id, title, owner, username, status, ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), warning));
+    }
+
+    private Map<String, Object> requireUser(HttpServletRequest request) throws SQLException {
+        Map<String, Object> user = SessionService.currentUser(request);
+        if (user == null) throw new SecurityException("로그인 후 이용할 수 있습니다.");
+        return user;
+    }
+
+    private Map<String, Object> requireStaff(HttpServletRequest request) throws SQLException {
+        Map<String, Object> user = requireUser(request);
+        if (!"staff".equals(user.get("role"))) throw new SecurityException("관리자 권한이 필요합니다.");
+        return user;
     }
 
     private long scalar(String sql, Object... parameters) throws SQLException {
